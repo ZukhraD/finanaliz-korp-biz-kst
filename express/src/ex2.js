@@ -16,20 +16,22 @@ const SEVT = { crit: "Стоп-фактор", risk: "Риск", chk: "Прове
 
 /* ---------------------------------------------------------------- платёж по новому кредиту */
 // цель «пополнение оборотных средств» (не овердрафт) — платёжная нагрузка считается только по процентам
-const isWC = (c = X.card) => c.product !== "Овердрафт" && /оборотн/i.test(c.purpose || "");
+// тип финансирования: ВКЛ — в нагрузке только проценты за год, НКЛ — весь платёж за год (у старых клиентов — по цели)
+const finType = (c = X.card) => (c.fintype === "ВКЛ" || c.fintype === "НКЛ" ? c.fintype : /оборотн/i.test(c.purpose || "") ? "ВКЛ" : "НКЛ");
+const isWC = (c = X.card) => c.product !== "Овердрафт" && finType(c) === "ВКЛ";
+const isBU = (c = X.card) => c.product === "Бизнес Успех", isSU = (c = X.card) => c.product === "Start up";
+const purCls = (c = X.card) => (/инвест/i.test(c.purpose || "") ? "Инв" : "ПОС");   // рефинансирование и смешанное — по строгому сроку ПОС
 function loanPay(c = X.card) {
   const A = N(c.amount), n = Math.max(1, N(c.term) - N(c.grace)), r = N(c.rate) / 100 / 12;
   if (!A || !N(c.term)) return null;
-  if (c.product === "Кредитная линия" || c.product === "Овердрафт") {
-    // линия: считаем как кредит на срок (консервативно); овердрафт — только проценты
-    if (c.product === "Овердрафт") return { pay: A * r, first: A * r, grace: 0, note: "только проценты (овердрафт гасится оборотами)" };
-  }
+  if (c.product === "Овердрафт") return { pay: A * r, first: A * r, grace: 0, year: A * r * 12, note: "только проценты (овердрафт гасится оборотами)" };
   // пополнение оборотных средств: нагрузка — только проценты (сумма × ставка в год)
   if (isWC(c)) return { pay: A * r, first: A * r, grace: A * r, year: A * r * 12, wc: true, note: `только проценты: ${fmt(A * r * 12)} тыс. тг в год` };
-  if (c.sched === "end") return { pay: A * r, first: A * r, grace: A * r, balloon: A, note: "ежемесячно только проценты, долг — одной суммой в конце срока" };
-  if (c.sched === "diff") return { pay: A / n + A * r, first: A / n + A * r, grace: A * r, note: "первый платёж самый большой, потом уменьшается" };
+  if (c.sched === "end") return { pay: A * r, first: A * r, grace: A * r, year: A * r * 12, balloon: A, note: "ежемесячно только проценты, долг — одной суммой в конце срока" };
+  const gr = Math.min(12, N(c.grace)), yrD = (() => { let s = 0; for (let t = 1; t <= 12; t++) s += t <= gr ? A * r : A / n + (A - A / n * (t - gr - 1)) * r; return s; })();
+  if (c.sched === "diff") return { pay: A / n + A * r, first: A / n + A * r, grace: A * r, year: yrD, note: "первый платёж самый большой, потом уменьшается" };
   const p = r ? A * r / (1 - Math.pow(1 + r, -n)) : A / n;
-  return { pay: p, first: p, grace: A * r, note: "равными платежами" };
+  return { pay: p, first: p, grace: A * r, year: p * (12 - gr) + A * r * gr, note: "равными платежами" };
 }
 // какую сумму можно обслуживать при заданном ежемесячном платеже (те же условия)
 function amountForPay(pay, c = X.card) {
@@ -97,6 +99,7 @@ function problems(m = analyze()) {
   if (m.bal && isNum(m.eq) && m.eq < 0) add("crit", "Капитал", "Отрицательный собственный капитал", `Долгов у компании больше, чем всего имущества: капитал ${T(m.eq)}. Накопленные убытки «съели» собственные средства.`, "Обычно это стоп-фактор. Уточнить у риск-менеджера, возможно ли финансирование при докапитализации учредителем.");
   // овердрафт: условия продукта
   if (isOD(c)) for (const k of odChecks()) if (k.sev !== "ok") add(k.sev, "Овердрафт", k.t, `Факт: ${k.fact.replace(/\.$/, "")}.`, k.todo);
+  if (isBU(c) || isSU(c)) for (const k of prodChecksX(m)) if (k.sev !== "ok") add(k.sev, c.product, k.t, `Факт: ${k.fact.replace(/\.$/, "")}.`, k.todo);
   // платёжеспособность
   if (!isOD(c) && isNum(m.dscr)) {
     if (m.dscr < NORM.dscr_min) add("crit", "Платёжеспособность", "Денег не хватает на платежи по кредитам", `Бизнес зарабатывает ~${T(m.cashMonth)} в месяц, а платить по всем кредитам (вместе с новым) нужно ~${T(m.payTotal)}. Покрытие ${fmt(m.dscr, "x")} — меньше 1.`, m.maxAmt > 0 ? `Снизить сумму до ~${T(Math.floor(m.maxAmt / 100) * 100)} или увеличить срок; проверить, нет ли неучтённых доходов (обороты по счетам).` : "При текущих доходах новый кредит не обслуживается. Проверить обороты по счетам и возможность рефинансирования.");
@@ -325,4 +328,36 @@ async function odImportStmt(file, where, onProg) {
   o.st = o.st.filter(x => !(x.acc && x.acc === st.acc && x.from === st.from && x.to === st.to));
   o.st.push({ id: uid(), file: file.name, bank: st.bank, acc: st.acc, cur: st.cur || "KZT", rate: null, where, from: st.from, to: st.to || "", bin: st.bin, txs });
   return { ok: true, txt: `${st.bank || "банк не определён"}${st.acc ? ", счёт " + st.acc : ""}${st.from ? `, ${st.from}–${st.to}` : ""}: поступлений ${txs.length}${st.cur && st.cur !== "KZT" ? `; валюта ${st.cur} — укажите курс` : ""}.${r.ocr ? " Распознано со скана — проверьте операции." : ""}` };
+}
+
+/* ---------------------------------------------------------------- «Бизнес Успех» и «Start up»: короткая проверка условий продукта
+   (полный разбор — в «Финансовом анализе»). Рефинансирование и смешанная цель — по строгому сроку ПОС. */
+function prodChecksX(m = analyze()) {
+  const c = X.card, out = [], add = (sev, t, fact, todo) => out.push({ sev, t, fact, todo });
+  if (!isBU(c) && !isSU(c)) return out;
+  const A = N(c.amount), cls = purCls(c), maxT = isBU(c) ? (cls === "ПОС" ? 37 : 60) : (cls === "ПОС" ? 36 : 60);
+  add(N(c.term) > 0 ? (N(c.term) <= maxT ? "ok" : "crit") : "nd", `Срок не более ${maxT} мес.`, N(c.term) ? `${c.term} мес.` : "не указан", `Уменьшите срок до ${maxT} мес.`);
+  if (isBU(c)) {
+    add(!A ? "nd" : A <= 75000 ? "ok" : "crit", "Сумма не более 75 млн тг", A ? `${fmt(A)} тыс. тг` : "не указана", "Уменьшите сумму до 75 000 тыс. тг.");
+    add(N(c.grace) > 0 ? "crit" : "ok", "Без отсрочки и льготного периода", `льготный период ${fmt(N(c.grace), "d")} мес.`, "Уберите льготный период: долг гасится ежемесячно.");
+    const ltv = A && N(c.realty) > 0 ? A / N(c.realty) : null, lr = ltv === null ? null : Math.round(ltv * 10) / 10;
+    add(ltv === null ? "nd" : lr <= 0.7 ? "ok" : "crit", "Сумма не более 70 % стоимости недвижимости в залоге (LTV)", ltv === null ? "укажите стоимость недвижимости в залоге" : `LTV ${fmt(ltv * 100, "d2")} %`, "Уменьшите сумму или добавьте залог (жилая/коммерческая недвижимость, не земля и не подвал).");
+    if (lr !== null && lr > 0.5) {
+      add(isNum(m.ta) ? (A <= m.ta ? "ok" : "crit") : "nd", "При LTV выше 0,5: сумма не больше валюты баланса", isNum(m.ta) ? `баланс ${fmt(m.ta)} тыс. тг` : "нет баланса", "Сумма не должна превышать валюту баланса.");
+      add(isNum(m.rev) ? (A <= m.rev ? "ok" : "crit") : "nd", "При LTV выше 0,5: сумма не больше годовой выручки", isNum(m.rev) ? `выручка ${fmt(m.rev)} тыс. тг` : "нет ОПиУ", "Сумма не должна превышать годовую выручку.");
+    }
+    const need = lr !== null && lr > 0.5 ? 12 : 6;
+    add(isNum(c.expm) ? (c.expm >= need ? "ok" : "crit") : "nd", `Срок деятельности не менее ${need} мес.`, isNum(c.expm) ? `${c.expm} мес.` : "не указан", "Укажите срок деятельности клиента в карточке.");
+    if (isNum(m.ni)) add(m.ni > 0 ? "ok" : "crit", "Положительная чистая прибыль и капитал", `прибыль ${fmt(m.ni)}, капитал ${isNum(m.eq) ? fmt(m.eq) : "—"}`, "Нужны положительные чистая прибыль и собственный капитал.");
+  } else {
+    add(N(c.grace) <= 12 ? "ok" : "crit", "Отсрочка по основному долгу не более 12 мес.", `${fmt(N(c.grace), "d")} мес.`, "Уменьшите льготный период до 12 мес.");
+    const d = isNum(c.guarPct) ? c.guarPct : null;
+    add(d === null ? "nd" : d >= 60 && d <= 85 ? "ok" : "crit", "Гарантия «Даму» — 60–85 % суммы", d === null ? "не указана" : `${fmt(d, "d2")} %`, "Укажите долю гарантии Даму: нужна от 60 до 85 %.");
+    const cov = A && d !== null && isNum(c.collat) ? (A * d / 100 + N(c.collat)) / A : null;
+    add(cov === null ? "nd" : cov >= 1 ? "ok" : "crit", "Покрытие залогом и гарантией не менее 100 %", cov === null ? "укажите остальной залог" : `${fmt(cov * 100, "d2")} %`, "Добавьте деньги или недвижимость в залог.");
+    if (cls === "Инв") { const pc = N(c.projCost), own = pc > 0 && A ? (pc - A) / pc : null;
+      add(own === null ? "nd" : own >= 0.2 ? "ok" : "crit", "Собственное участие не менее 20 % стоимости проекта", own === null ? "укажите стоимость проекта" : `${fmt(own * 100, "d2")} %`, "Увеличьте собственное участие или уменьшите сумму."); }
+    if (A > 100000) add("chk", "Свыше 100 млн тг нужна гарантия платёжеспособного юрлица", "проверьте в полном анализе", "Debt/EBITDA ≤ 3, DSCR ≥ 1,3, опыт от 12 мес.");
+  }
+  return out;
 }

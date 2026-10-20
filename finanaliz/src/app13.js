@@ -183,8 +183,7 @@ function odCardPanel() {
   return `<section class="panel"><h2>Условия овердрафта</h2><p class="hint">Лимит — до 40 % среднемесячных очищенных кредитовых оборотов за ${odN()} мес. до месяца заявки по счетам в Банке и до 40 % — в других банках (не более 2 банков), не более 100 млн тг при транше до 90 дней. Расчётный лимит сейчас: <b>${fmt(B.limit)} тыс. тг</b>.</p>
     <div class="grid2">${num("line", "Срок кредитной линии, мес. (≤ 36)")}${sel("tranche", "Срок транша, дней", [30, 90])}${num("avail", "Период доступности, мес. (≤ 11; ≤ 3 по другим банкам)")}
       <label class="f"><span>Дата заявки</span><input class="inp" type="date" data-od="appDate" value="${esc(o.appDate || C.card.date || "")}"></label>
-      ${sel("seasonal", "Сезонный бизнес (период 12 мес.)", ["Нет", "Да"])}${sel("zone", "Зона проблемности", ["Нет", "Жёлтая", "Красная", "Чёрная"])}${sel("agent", "Агентская деятельность (договор комиссии)", ["Нет", "Да"])}
-      <label class="f"><span>СК Банка, млн тг (для порога 0,2 %)</span><input class="inp" data-odeq inputmode="numeric" value="${esc(isNum(eq) ? fmt(eq) : "")}" placeholder="для всех клиентов"></label></div></section>`;
+      ${sel("seasonal", "Сезонный бизнес (период 12 мес.)", ["Нет", "Да"])}${sel("zone", "Зона проблемности", ["Нет", "Жёлтая", "Красная", "Чёрная"])}${sel("agent", "Агентская деятельность (договор комиссии)", ["Нет", "Да"])}</div></section>`;
 }
 
 /* ---------- заключение в формате чек-листа */
@@ -205,6 +204,7 @@ function odConclusionHTML(forWord) {
     <tr><td style="text-align:left">Сумма финансирования, тыс. тг</td><td style="text-align:left">${isNum(c.amount) ? fmt(c.amount) : "не указана"}</td></tr>
     <tr><td style="text-align:left">Срок кредитной линии / период доступности</td><td style="text-align:left">${esc(o.line)} мес. / ${esc(o.avail)} мес.</td></tr>
     <tr><td style="text-align:left">Дата заявки</td><td style="text-align:left">${esc(odAppDate().split("-").reverse().join("."))}</td></tr>
+    <tr><td style="text-align:left">Тип финансирования / платёж</td><td style="text-align:left">${esc(reqSentence())}</td></tr>
     <tr><td style="text-align:left">Формат заключения</td><td style="text-align:left">${esc(fm.txt)}</td></tr></tbody></table>
   ${H2("Расчёт лимита по оборотам")}<p>Период: ${esc(ymLabel(B.win[0]))} – ${esc(ymLabel(B.win[B.win.length - 1]))} (${B.win.length} мес.). Тыс. тг.</p>
   <table ${T}><thead><tr><th${th} style="text-align:left">Показатель</th><th${th}>В Банке</th><th${th}>В других банках</th></tr></thead><tbody>

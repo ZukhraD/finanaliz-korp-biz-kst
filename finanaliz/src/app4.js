@@ -1,7 +1,7 @@
 "use strict";
 /* ---------------------------------------------------------------- прогноз ДДС: база и стресс (та же логика, что в Excel-шаблоне / refmodel) */
 // цель «Пополнение оборотных средств»: платёж по запрашиваемому кредиту — только проценты; инвестиции, рефинансирование — проценты и основной долг
-const reqWC = () => /оборотн/i.test((C && C.card && C.card.purpose) || "");
+const reqWC = () => finType() === "ВКЛ";
 const SCH = { "Дифференцированный": 1, "Аннуитет": 2, "В конце срока": 3 };
 function fcParams() {
   if (!C.fc) C.fc = JSON.parse(JSON.stringify(S.fc_default));
@@ -70,7 +70,7 @@ function forecastRaw(obj, s, Hset) {
     for (let t = 0; t <= H; t++) { I[t] += it[t]; PR[t] += pr[t]; }
   }
   const R = f.req, [nI, nP] = N(R.amt) > 0 ? amort(N(R.amt), N(R.rate) + P.rshock, Math.max(1, N(R.term)), N(R.grace), SCH[R.scheme] || 1, null, Math.max(1, N(R.month)), H) : [new Array(H + 1).fill(0), new Array(H + 1).fill(0)];
-  if (reqWC()) nP.fill(0);   // оборотный кредит: в нагрузке только проценты, основной долг возобновляется из оборота
+  if (reqWC()) { nP.fill(0); const wi = wcInterest(R, N(R.rate) + P.rshock, H); for (let t = 0; t <= H; t++) nI[t] = wi[t]; }   // ВКЛ: в нагрузке только проценты на всю сумму, основной долг возобновляется
   const icapex = t => f.projects.reduce((a, p) => a + (t >= N(p.start) && t < N(p.start) + N(p.dur) ? N(p.amt) / Math.max(1, N(p.dur)) : 0), 0) * (1 + P.overrun);
   const dpm = 365 / 12, rows = [], revs = [], cogss = [];
   let cashPre = g("cash") + g("stinv"), cashPost = cashPre, nbal = 0, nwcPrev = g("ar") + g("inv") - g("ap");
@@ -238,7 +238,8 @@ function problems() {
       if (isFinite(oq.maxDE) && oq.maxDE > 4) add("chk", "fc", "Квартальный прогноз: финансовый долг / EBITDA выше 4", `Максимум ${fmt(oq.maxDE, "x")}`, "Проверьте допущения роста и маржи; рассмотрите меньшую сумму или более длинный срок.");
     }
   }
-  if (isOD()) { const keep = odFilter(out); out.length = 0; out.push(...keep); odProblems(add); }
+  if (isOD()) { const keep = odFilter(out); out.length = 0; out.push(...keep); odProblems(add); } else if (isBU() || isSU()) prodProblems(add);
+  foundersProblems(add);
   const rank = { crit: 0, risk: 1, chk: 2, nd: 3 };
   return out.sort((a, b) => rank[a.sev] - rank[b.sev]);
 }

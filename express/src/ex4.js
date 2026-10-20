@@ -1,6 +1,6 @@
 "use strict";
 /* ================================================================ Экспресс-анализ: события, пример, запуск */
-const NUMF = new Set(["payExist", "amount", "term", "rate", "grace", "guarPct", "balance", "pay", "value", "disc", "months", "year", "rev", "vat_turn"]);
+const NUMF = new Set(["payExist", "amount", "term", "rate", "grace", "guarPct", "realty", "expm", "collat", "projCost", "balance", "pay", "value", "disc", "months", "year", "rev", "vat_turn"]);
 // подтверждение внутри страницы (системные окна в некоторых браузерах и превью заблокированы)
 function ask(msg, yes = "Да", no = "Отмена") {
   return new Promise(res => {

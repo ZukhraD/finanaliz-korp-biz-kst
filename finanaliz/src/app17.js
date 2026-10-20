@@ -35,9 +35,10 @@ function autoConclusion() {
     const fb = forecast(obj, 0), fs = forecast(obj, 1), rs = riskSummary(obj);
     const g = isNum(v("rev")) && isNum(vp("rev")) && vp("rev") > 0 ? v("rev") / vp("rev") - 1 : null;
     T.push(`Заёмщик: ${C.card.name}${nComp() > 1 ? (obj ? ", анализ по компании " + compName(obj) : ", анализ консолидированно по группе") : ""}. Запрос: ${C.card.product || "кредит"} ${mm(amt)}${C.card.purpose ? ", цель — " + C.card.purpose.toLowerCase() : ""}.`);
+    T.push(reqSentence());
     T.push(`Финансовое состояние (${P ? P.label : "последний период"}): выручка ${mm(v("rev"))}${isNum(g) ? ` (${g >= 0 ? "рост" : "снижение"} на ${fmt(Math.abs(g), "p")} к предыдущему периоду)` : ""}, EBITDA ${mm(r("ebitda_ann"))} (маржа ${pct(r("ebitda_m"))}), чистая прибыль ${mm(v("ni"))} (маржа ${pct(r("net_m"))}). Собственный капитал ${mm(v("eq"))}.`);
     T.push(`Ликвидность и долговая нагрузка: текущая ликвидность ${xx(r("liq_cur"))} (${stWord("liq_cur", r("liq_cur")) || "н/д"}), долг / EBITDA ${xx(r("debt_ebitda"))} (${stWord("debt_ebitda", r("debt_ebitda")) || "н/д"}), общий долг ${mm(r("debt"))}.`);
-    if (!fb.err) T.push(`Прогноз${reqWC() ? " (кредит на пополнение оборотных средств — в нагрузке только проценты)" : ""}: DSCR с новым кредитом за горизонт ${fb.H} мес. — ${xx(fb.dscr_h_post)} в базовом и ${xx(fs.dscr_h_post)} в стрессовом сценарии; минимальный остаток денег с кредитом — ${mm(fb.mincash_post)}${fb.rec > 0 ? `; расчётная потребность в финансировании — ${mm(fb.rec)}` : ""}.`);
+    if (!fb.err) T.push(`Прогноз${reqWC() ? " (ВКЛ — в нагрузке только проценты)" : ""}: DSCR с новым кредитом за горизонт ${fb.H} мес. — ${xx(fb.dscr_h_post)} в базовом и ${xx(fs.dscr_h_post)} в стрессовом сценарии; минимальный остаток денег с кредитом — ${mm(fb.mincash_post)}${fb.rec > 0 ? `; расчётная потребность в финансировании — ${mm(fb.rec)}` : ""}.`);
     else T.push(`Прогноз не построен: ${fb.err}.`);
     if (cc) T.push(`Обеспечение: залоговая стоимость ${mm(cc.coll)} при рыночной ${mm(cc.mk)}; покрытие запроса ${pct(cc.cover)}, LTV ${pct(cc.ltv)}.`);
     else T.push("Обеспечение не указано.");
@@ -45,6 +46,10 @@ function autoConclusion() {
     if (probs.length) T.push(`Основные риски: ${probs.slice(0, 5).map(p => p.title.replace(/\.$/, "")).join("; ")}.`);
     const dscrBad = !fb.err && isNum(fb.dscr_h_post) && fb.dscr_h_post < 1, dscrLow = !fb.err && isNum(fb.dscr_h_post) && fb.dscr_h_post < 1.2;
     dec = ts.stop > 0 || dscrBad || rs.ind[0] === "crit" ? "Не рекомендовать" : rs.ind[0] === "nd" || fb.err ? "Доработать / запросить данные" : rs.ind[0] === "chk" || dscrLow || (cc && cc.cover < 1) || !cc ? "Рекомендовать с условиями" : "Рекомендовать";
+    if ((isBU() || isSU())) { const pc = prodChecks().out, pf = pc.filter(x => x.st === "crit"), pu = pc.filter(x => x.st === "chk" || x.st === "nd");
+      T.push(pf.length ? `Не соответствует условиям продукта «${C.card.product}»: ${pf.map(x => x.title.toLowerCase()).join("; ")}.` : `Несоответствий условиям продукта «${C.card.product}» не выявлено.`);
+      if (pu.length) T.push(`Требуют проверки: ${pu.map(x => x.title.toLowerCase()).join("; ")}.`);
+      if (pf.length) dec = "Не рекомендовать"; else if (pu.length && dec === "Рекомендовать") dec = "Рекомендовать с условиями"; }
     if (dec === "Не рекомендовать") T.push(`Итог: ${ts.stop ? "выявлены стоп-факторы благонадёжности" : dscrBad ? "денежного потока недостаточно для обслуживания долга с новым кредитом" : "имеются критические отклонения показателей"}; финансирование на запрашиваемых условиях не рекомендуется.`);
     else if (dec === "Доработать / запросить данные") T.push("Итог: для окончательного вывода не хватает данных — дозаполните отчётность и проверки, указанные в «Проблемах и решениях».");
     else T.push(`Итог: финансовое состояние и денежный поток позволяют обслуживать запрашиваемый кредит${dec === "Рекомендовать с условиями" ? " при соблюдении условий ниже" : ""}.`);

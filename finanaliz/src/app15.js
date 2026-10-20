@@ -157,7 +157,8 @@ function aiBlocks() {
   P("Документ сформирован автоматически для анализа с помощью ИИ. Исключены названия компаний и группы, БИН/ИИН, адреса, имена руководителей и учредителей, наименования контрагентов и банков, описания залогов и комментарии. Суммы — в тыс. тенге, если не указано иное.", true);
   H2("1. Запрос");
   const f = fcParams();
-  const req = [["Продукт", C.card.product || ""], ["Сумма запроса, тыс. тг", fmt(C.card.amount)], ["Цель финансирования", C.card.purpose || ""]];
+  const req = [["Продукт", C.card.product || ""], ["Сумма запроса, тыс. тг", fmt(C.card.amount)], ["Цель финансирования", C.card.purpose || ""], ["Тип финансирования", finType()]];
+  { const rp = reqPay(); if (rp) req.push(["Ежемесячный платёж, тыс. тг", fmt(rp.first)], [rp.ft === "ВКЛ" ? "Проценты за год, тыс. тг" : "Платёж за год, тыс. тг", fmt(rp.year)]); }
   if (!od) req.push(["Срок, мес.", fmt(f.req.term, "d")], ["Ставка, %", isNum(f.req.rate) ? fmt(f.req.rate * 100, "m1") : ""], ["Льготный период по ОД, мес.", fmt(f.req.grace, "d")], ["Схема погашения", f.req.scheme || ""]);
   if (A.oked) { const o = C.card.oked?.[0]; if (o?.code) req.push(["Отрасль (раздел ОКЭД)", o.code.slice(0, 2) + " — " + (typeof OKED_DIV !== "undefined" && OKED_DIV[o.code.slice(0, 2)] ? OKED_DIV[o.code.slice(0, 2)] : "")]); }
   req.push(["Объект анализа", objLab], ["Компаний в группе", String(nComp())]);

@@ -110,6 +110,7 @@ function renderClients() {
 const REGIONS = ["г. Астана", "г. Алматы", "г. Шымкент", "Абайская область", "Акмолинская область", "Актюбинская область", "Алматинская область", "Атырауская область", "Восточно-Казахстанская область", "Жамбылская область", "Жетысуская область", "Западно-Казахстанская область", "Карагандинская область", "Костанайская область", "Кызылординская область", "Мангистауская область", "Павлодарская область", "Северо-Казахстанская область", "Туркестанская область", "Улытауская область"];
 function pageCard() {
   const c = C.card;
+  if (c.purpose === "Смешанная цель") c.purpose = "Смешанное";
   for (const o of c.oked || []) if (o.code && !o.manual) { const r = okedLookup(o.code); if (r && r.name && r.name !== o.name) o.name = r.name; }
   const f = (key, lab, type = "text", ph = "") => `<label class="f"><span>${lab}</span><input class="inp" data-card="${key}" type="${type}" value="${esc(c[key] ?? "")}"${ph ? ` placeholder="${esc(ph)}"` : ""}></label>`;
   const sel = (key, lab, list) => `<label class="f"><span>${lab}</span><select class="inp" data-card="${key}">${opts(list, c[key])}</select></label>`;
@@ -133,15 +134,19 @@ function pageCard() {
   return `<div class="pagehead"><div class="lead"><h1>Карточка клиента</h1><p>Клиент, состав группы и отчётные периоды. Периоды идут от старого к новому; у всех компаний группы они одинаковые.</p></div></div>
   <section class="panel"><h2>Клиент и запрос</h2><div class="grid2">
     ${f("name", "Клиент / группа")}${f("bin", "БИН основной компании")}${f("activity", "Описание деятельности (свободно)")}<label class="f"><span>Регион</span><select class="inp${c.region ? "" : " ph"}" data-card="region"><option value=""${c.region ? "" : " selected"} disabled hidden>Выберите регион</option>${(REGIONS.includes(c.region) || !c.region ? REGIONS : [c.region, ...REGIONS]).map(r => `<option value="${esc(r)}"${r === c.region ? " selected" : ""}>${esc(r)}</option>`).join("")}</select></label>
-    ${f("analyst", "Кредитный менеджер", "text", "ФИО")}${f("date", "Дата анализа", "date")}${sel("purpose", "Цель финансирования", S.lists.fpurpose)}${sel("product", "Продукт", S.lists.product)}
+    ${f("analyst", "Кредитный менеджер", "text", "ФИО")}${f("date", "Дата анализа", "date")}${sel("purpose", "Цель финансирования", withCur(S.lists.fpurpose, c.purpose))}${sel("product", "Продукт", withCur(S.lists.product, c.product))}
     <label class="f"><span>Запрашиваемая сумма, тыс. тг</span><input class="inp" data-card="amount" data-num value="${esc(fmt(c.amount))}"></label>
+    <label class="f" title="Собственный капитал Банка: общий для всех клиентов, используется в расчётах, где нужен порог от СК Банка (овердрафт, Бизнес Успех, Start up)."><span>СК Банка, млн тг</span><input class="inp" data-odeq inputmode="numeric" value="${esc(isNum(odBankEq()) ? fmt(odBankEq()) : "")}" placeholder="для всех клиентов"></label>
     <label class="f" title="Допустимая разница при автоматических сверках (баланс, ОПиУ, декларации, банк, кредиты): расхождения меньше этой суммы считаются округлением и не попадают в «Проблемы»."><span>Допуск расхождений, тыс. тг <span class="qhint">?</span></span><input class="inp" data-card="tol" data-num value="${esc(fmt(c.tol))}"></label>
   </div></section>
+  ${reqPanel()}
   ${isOD() ? odCardPanel() : ""}
+  ${prodPanel()}
   ${okedPanel()}
   <section class="panel"><h2>Компании (${nComp()} из ${MAX_COMP})</h2><p class="hint">Для группы анализ строится по сумме компаний за вычетом внутригрупповых операций. БИН нужен, чтобы находить внутригрупповые операции. Кнопка «По БИН» сама загружает данные компании с ba.prg.kz (Параграф) — наружу уходит только БИН.</p>
     <div class="tablewrap" style="max-height:none"><table class="data form"><thead><tr><th class="lab">№</th><th style="text-align:left">Название</th><th style="text-align:left">БИН / ИИН</th><th style="text-align:left">Роль</th><th style="text-align:left">Форма</th><th style="text-align:left">Плательщик НДС</th><th style="text-align:left">Налоговый режим</th><th></th></tr></thead><tbody>${comps}</tbody></table></div>
     ${nComp() < MAX_COMP ? `<p style="margin-top:10px"><button class="btn" data-act="addcomp">Добавить компанию</button></p>` : ""}</section>
+  ${foundersPanel()}
   <section class="panel"><h2>Отчётные периоды (${C.periods.length} из ${MAX_PER})</h2><p class="hint">Выберите год и квартал — дата, число месяцев и название подставятся сами. Для квартала основа «Нарастающим итогом» означает отчётность с начала года (3, 6, 9 мес.), «Отдельный период» — только за этот квартал. Обороты пересчитываются в годовые как ×12/месяцев.${nComp() > 1 ? " «Не было деятельности» — компания ещё не существовала или не работала: за этот период она входит в группу нулями и не требует отчётности. Отметка ставится сама, если дата регистрации (из «Подтянуть по БИН» или «Благонадёжности») позже даты отчёта; её можно снять или поставить вручную." : ""}</p>
     <div class="tablewrap" style="max-height:none"><table class="data form"><thead><tr><th class="lab">№</th><th style="text-align:left">Название</th><th style="text-align:left">Год</th><th style="text-align:left">Период</th><th style="text-align:left">Дата отчёта</th><th style="text-align:left">Основа</th><th style="text-align:left">Месяцев</th>${nComp() > 1 ? '<th style="text-align:left">Не было деятельности</th>' : ""}<th></th></tr></thead><tbody>${pers}</tbody></table></div>
     ${C.periods.length < MAX_PER ? `<p style="margin-top:10px"><button class="btn" data-act="addper">Добавить следующий год</button> <button class="btn" data-act="addq">Добавить квартал</button> <button class="btn ghost" data-act="addperfirst">Добавить более ранний</button></p>` : ""}</section>`;
@@ -605,6 +610,7 @@ function refreshCalc() {
   });
   PROB = problems(); paintProblemMarks(); paintNeg();
   const out = $("#fcOut"); if (out) out.innerHTML = fcOutHTML();
+  const rf = $("#reqFacts"); if (rf) rf.innerHTML = reqFactsHTML();
   if (typeof fcqRefresh === "function") fcqRefresh();
   const hz = document.querySelector('select[data-fc="horizon"] option[value="0"]'); if (hz) hz.textContent = `По сроку кредита (${fcHorizon()} мес.)`;
 }
