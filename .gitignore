@@ -1,0 +1,16 @@
+# никогда не коммитить данные клиентов
+*.json.bak
+clients/
+*_клиент*.json
+Клиент_*.json
+*.xlsx
+*.xlsm
+*.xls
+node_modules/
+__pycache__/
+tmp/
+shots/
+Экспресс_*.json
+*.pdf
+__pycache__/
+*.png
