@@ -6,7 +6,7 @@ F = [("Roboto", 400, "roboto-400"), ("Roboto", 700, "roboto-700"), ("Jost", 500,
 fonts = "".join(f'@font-face{{font-family:"{fam}";font-weight:{w};font-style:normal;font-display:swap;src:url(data:font/woff;base64,{base64.b64encode(open(f"express/src/fonts/{n}.woff","rb").read()).decode()}) format("woff");}}' for fam, w, n in F)
 css = fonts + open("hub/hub.css", encoding="utf-8").read()
 KZ = {
-  "title": "Қостанай корпоративтік клиенттерін қаржылық талдау",
+  "title": "Корпоративтік клиенттерді қаржылық талдау. Қостанай",
   "h1": "Құралды таңдаңыз",
   "lead": "Клиентпен жұмыстың екі кезеңіне арналған екі құрал: алғашқы өтініш кезіндегі жылдам алдын ала бағалау және кредиттік шешімге арналған толық талдау.",
   "n1": "1 · клиенттік менеджер үшін", "t1": "Экспресс-талдау",
@@ -21,24 +21,24 @@ kzjs = json.dumps(KZ, ensure_ascii=False)
 html = f"""<!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#023DFF">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; font-src data:; img-src data:">
-<title>Финансовый анализ корпоративных клиентов Костанай</title>
+<title>Финансовый анализ корпоративных клиентов. Костанай</title>
 <style>{css}</style></head>
 <body>
 <div class="wrap">
-<header><div class="mark" aria-hidden="true"></div><div><b data-t="title">Финансовый анализ корпоративных клиентов Костанай</b></div>
+<header><div class="mark" aria-hidden="true"></div><div><b data-t="title">Финансовый анализ корпоративных клиентов. Костанай</b></div>
 <div class="tools"><span class="lang" role="group" aria-label="Язык" data-tl="lang"><button type="button" data-lang="ru" class="on">RUS</button><button type="button" data-lang="kz">KAZ</button></span></div></header>
 <main>
 <h1 data-t="h1">Выберите инструмент</h1>
 <p class="lead" data-t="lead">Два инструмента для двух этапов работы с клиентом: быстрая предварительная оценка при первом обращении и полный анализ для кредитного решения.</p>
 <div class="cards">
-<a class="card" href="/express/"><span class="num" data-t="n1">1 · для клиентского менеджера</span><h2 data-t="t1">Экспресс анализ</h2>
+<a class="card" href="/express/"><div class="ctop"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span><span class="num" data-t="n1">1 · для клиентского менеджера</span></div><h2 data-t="t1">Экспресс анализ</h2>
 <p data-t="p1">При первом обращении клиента, по минимуму документов, решить, стоит ли собирать полный пакет. Без регистрации.</p>
-<ul><li data-t="a1">Загрузка отчётности: Excel, PDF, сканы</li><li data-t="b1">Расчёт суммы по доходам и лимита овердрафта</li><li data-t="c1">Пояснения простым языком, готовое заключение</li></ul>
-<span class="go" data-t="go">Открыть</span></a>
-<a class="card alt" href="/finanaliz/"><span class="num" data-t="n2">2 · для кредитного менеджера</span><h2 data-t="t2">Финансовый анализ</h2>
+<ul class="feat"><li data-t="a1">Загрузка отчётности: Excel, PDF, сканы</li><li data-t="b1">Расчёт суммы по доходам и лимита овердрафта</li><li data-t="c1">Пояснения простым языком, готовое заключение</li></ul>
+<span class="go"><span data-t="go">Открыть</span><i aria-hidden="true">→</i></span></a>
+<a class="card alt" href="/finanaliz/"><div class="ctop"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V11M11 20V4M17 20v-6M3 20h18"/></svg></span><span class="num" data-t="n2">2 · для кредитного менеджера</span></div><h2 data-t="t2">Финансовый анализ</h2>
 <p data-t="p2">Полный анализ юридических лиц и групп компаний: отчётность, налоги, банк, кредитная история, прогноз, заключение.</p>
-<ul><li data-t="a2">Баланс, ОПиУ, ДДС, коэффициенты и DSCR</li><li data-t="b2">Выписки банков, ПКБ, залог и гаранты</li><li data-t="c2">Заключение для кредитного комитета</li></ul>
-<span class="go" data-t="go">Открыть</span></a>
+<ul class="feat"><li data-t="a2">Баланс, ОПиУ, ДДС, коэффициенты и DSCR</li><li data-t="b2">Выписки банков, ПКБ, залог и гаранты</li><li data-t="c2">Заключение для кредитного комитета</li></ul>
+<span class="go"><span data-t="go">Открыть</span><i aria-hidden="true">→</i></span></a>
 </div>
 </main>
 </div>
