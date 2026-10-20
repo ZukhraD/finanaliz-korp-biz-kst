@@ -485,7 +485,7 @@ document.addEventListener("click", async e => {
   switch (d.act) {
     case "clients": C = null; render(); break;
     case "new": { const c = newClient(); CLIENTS.push(c); C = c; PAGE = "card"; saveAll(true); render(); break; }
-    case "demo": { let c = CLIENTS.find(x => x.demo); if (!c) { c = demoClient(); CLIENTS.push(c); saveAll(true); } C = c; PAGE = "an"; render(); break; }
+    case "demo": { let c = CLIENTS.find(x => x.demo); if (!c) { c = demoClient(); CLIENTS.push(c); saveAll(true); } C = c; PAGE = "card"; render(); break; }
     case "export": C.saved = Date.now(); download(fileName(C), JSON.stringify(C, null, 1), "application/json"); saveAll(true); toast("Файл клиента сохранён в «Загрузки»"); break;
     case "import": { const inp = document.createElement("input"); inp.type = "file"; inp.accept = ".json"; inp.onchange = async () => { try {
       const o = JSON.parse(await inp.files[0].text());
