@@ -15,8 +15,9 @@ function render() {
   PROB = problems();
   const steps = [["card", "Карточка клиента"], ["trust", "Благонадёжность"], ["bal", "Баланс"], ["odr", "ОПиУ"], ["cf", "ДДС"], ["tax", "Налоги"], ["bank", "Банк"], ["credit", "Кредитная история"], ["coll", "Залог и гаранты"], ...(nComp() > 1 ? [["cons", "Свод группы"]] : []), ["fc", "Прогноз"], ["an", "Анализ"], ["prob", "Проблемы"], ["concl", "Заключение"]];
   if (isOD()) steps.splice(0, steps.length, ["card", "Карточка клиента"], ["trust", "Благонадёжность"], ["fin", "Баланс + ОПиУ"], ["bank", "Банк"], ["credit", "Кредитная история"], ["prob", "Проблемы"], ["concl", "Заключение"]);
+  if (isBU()) steps.splice(0, steps.length, ...BU_STEPS);
   if (PAGE === "cons" && nComp() < 2) PAGE = "fc";
-  if (!steps.some(st => st[0] === PAGE) && PAGE !== "ai" && PAGE !== "map" && PAGE !== "log" && PAGE !== "norms" && !(isOD() && (PAGE === "bal" || PAGE === "odr"))) PAGE = "card";
+  if (!steps.some(st => st[0] === PAGE) && PAGE !== "ai" && PAGE !== "map" && PAGE !== "log" && PAGE !== "norms" && !(isLite() && (PAGE === "bal" || PAGE === "odr"))) PAGE = "card";
   document.body.innerHTML = `
   <div class="app">
     <nav class="rail" aria-label="Разделы">
@@ -363,7 +364,7 @@ function pageConcl() {
     <label class="f"><span>Статус</span><select class="inp" data-concl="status">${opts(["Черновик", "На проверке", "Утверждено"], C.concl.status)}</select></label></div>
     <label class="f" style="margin-top:12px"><span>Выводы</span><textarea class="inp" data-concl="text" style="min-height:260px">${esc(C.concl.text)}</textarea></label>
     <label class="f" style="margin-top:12px"><span>Условия / ковенанты</span><textarea class="inp" data-concl="conditions" style="min-height:120px">${esc(C.concl.conditions)}</textarea></label></section>
-  <section class="panel" id="conclDoc">${isOD() ? odConclusionHTML(false) : conclusionHTML(false)}</section>`;
+  <section class="panel" id="conclDoc">${concHTML(false)}</section>`;
 }
 
 /* ---------- настройка загрузки и журнал */
@@ -589,7 +590,7 @@ document.addEventListener("change", e => {
     touch(); if (d.f === "basis") render(); return;
   }
   if (d.act === "obj") { C.obj = +t.value; touch(); render(); return; }
-  if (d.concl) { C.concl[d.concl] = t.value; touch(); const doc = $("#conclDoc"); if (doc) doc.innerHTML = conclusionHTML(false); return; }
+  if (d.concl) { C.concl[d.concl] = t.value; touch(); const doc = $("#conclDoc"); if (doc) doc.innerHTML = concHTML(false); return; }
   if (d.set) { C.settings[d.set] = d.set === "units" ? t.value : +t.value; touch(); return; }
   if (d.custom) { C.custom[d.custom] = t.value.trim(); touch(); return; }
   if (d.norm) {

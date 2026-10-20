@@ -31,6 +31,21 @@ function autoConclusion() {
     if (ob.other.avg > 0) cond.push("Перевод не менее 90 % кредитовых оборотов в Банк в течение 3 месяцев с начала финансирования; период доступности по оборотам в других банках — не более 3 мес. с пересмотром лимита.");
     cond.push("Ежемесячный мониторинг очищенных кредитовых оборотов; при снижении — пропорциональный пересмотр лимита или приостановка выдачи траншей.");
     cond.push("Предоставление финансовой отчётности ежеквартально.");
+  } else if (isBU()) {
+    const R = prodChecks(), Q = buCalc(), fails = R.out.filter(x => x.st === "crit"), unk = R.out.filter(x => x.st === "chk" || x.st === "nd");
+    const F = odFinVals(), c2 = F.p2, fv = k => F.v(c2, k);
+    T.push(`Заёмщик: ${C.card.name}. Запрашивается «Бизнес Успех» (${finType()}) ${mm(amt)}${C.card.purpose ? ", цель — " + C.card.purpose.toLowerCase() : ""}.`);
+    T.push(reqSentence());
+    T.push(`Финансовое состояние на ${c2 ? c2.label : "последнюю дату"}: выручка ${mm(fv("rev"))}, чистая прибыль ${mm(fv("ni"))}, собственный капитал ${mm(fv("eq"))}${isNum(fv("eq")) && fv("eq") <= 0 ? " — отрицательный" : ""}.`);
+    T.push(Q.ltv === null ? "Обеспечение: данных для расчёта LTV недостаточно." : `Обеспечение: объектов недвижимости ${Q.objs.length}, LTV ${pct(Q.ltv)}; итоговая сумма займа по расчёту — ${mm(Q.final)}${amt > 0 && amt > Q.max + 0.5 ? ", запрос превышает допустимую сумму" : ""}.`);
+    T.push(fails.length ? `Не соответствует условиям продукта: ${fails.map(x => x.title.toLowerCase()).join("; ")}.` : "Несоответствий условиям продукта не выявлено.");
+    if (unk.length) T.push(`Требуют проверки: ${unk.map(x => x.title.toLowerCase()).join("; ")}.`);
+    T.push(`Кредитная история: действующих займов ${cr.n}, остаток ${mm(cr.debt)}, текущая просрочка ${cr.od ? cr.od + " дн." : "отсутствует"}. Благонадёжность: стоп-факторов ${ts.stop}, рисков ${ts.risk}${ts.nd ? `, не проверено ${ts.nd}` : ""}.`);
+    const onlyAmt = fails.length && fails.every(x => ["final", "max", "ltv"].includes(x.id));
+    dec = ts.stop > 0 || (fails.length && !onlyAmt) ? "Не рекомендовать" : onlyAmt && Q.max > 0 ? "Рекомендовать с условиями" : unk.length ? "Доработать / запросить данные" : "Рекомендовать";
+    if (onlyAmt && Q.max > 0) cond.push(`Сумма займа — не более ${mm(Q.max)} (по расчёту LTV и ограничениям продукта).`);
+    cond.push("Выдача после регистрации залога в уполномоченном органе; выезд на место ведения бизнеса и осмотр залога.");
+    cond.push("Запрет на использование средств для оплаты или перевода аффилированным и связанным лицам.");
   } else {
     const fb = forecast(obj, 0), fs = forecast(obj, 1), rs = riskSummary(obj);
     const g = isNum(v("rev")) && isNum(vp("rev")) && vp("rev") > 0 ? v("rev") / vp("rev") - 1 : null;

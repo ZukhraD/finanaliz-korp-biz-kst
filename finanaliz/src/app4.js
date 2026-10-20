@@ -238,7 +238,7 @@ function problems() {
       if (isFinite(oq.maxDE) && oq.maxDE > 4) add("chk", "fc", "Квартальный прогноз: финансовый долг / EBITDA выше 4", `Максимум ${fmt(oq.maxDE, "x")}`, "Проверьте допущения роста и маржи; рассмотрите меньшую сумму или более длинный срок.");
     }
   }
-  if (isOD()) { const keep = odFilter(out); out.length = 0; out.push(...keep); odProblems(add); } else if (isBU() || isSU()) prodProblems(add);
+  if (isOD()) { const keep = odFilter(out); out.length = 0; out.push(...keep); odProblems(add); } else if (isBU()) { const keep = buFilter(out); out.length = 0; out.push(...keep); prodProblems(add); } else if (isSU()) prodProblems(add);
   foundersProblems(add);
   const rank = { crit: 0, risk: 1, chk: 2, nd: 3 };
   return out.sort((a, b) => rank[a.sev] - rank[b.sev]);
