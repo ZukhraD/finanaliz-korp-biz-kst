@@ -68,13 +68,13 @@ function renderHome() {
   X = null;
   const list = CLIENTS.slice().sort((a, b) => b.updated - a.updated);
   document.body.innerHTML = `<div class="home">
-    <a class="tohub" href="/">← На главную</a>
+    <div class="topbar"><a class="tohub" href="/">← На главную</a>${langSwitch()}</div>
     <div class="hero"><h1>Экспресс-анализ для КМ</h1>
       <p>Быстро понять, подходит ли клиент для финансирования, ещё до сбора полного пакета документов. Внесите данные клиента и запрос, загрузите баланс и ОПиУ — сайт сам посчитает показатели, подсветит проблемы и расхождения и напишет заключение простым языком.</p>
       <div class="row"><button class="btn primary big" data-act="new">+ Новый клиент</button><button class="btn alt big" data-act="demo">Пример для заполнения</button><button class="btn alt2 big" data-act="openfile">Открыть файл клиента</button></div></div>
     <div class="how">${PAGES.map(([, t], i) => `<div><b><em>${i + 1}</em>${t}</b><span>${["запрос клиента; для овердрафта — поступления по месяцам", "Excel, PDF или скан; декларации", "ключевые показатели и сколько можно дать", "готовый итог — скопировать или распечатать"][i]}</span></div>`).join("")}</div>
     <h2 style="margin-bottom:10px">Клиенты</h2>
-    ${list.length ? `<div class="clist">${list.map(c => { const v = clientVerdict(c); return `<div class="citem" data-open="${c.id}"><div class="nm"><b>${esc(c.card.name || "Без названия")}${c.demo ? ' <span class="tag nd">пример</span>' : ""}</b><span class="small muted">${esc([c.card.bin, c.card.product, isNum(c.card.amount) ? fmt(c.card.amount) + " тыс. тг" : ""].filter(Boolean).join(" · "))} · изменён ${new Date(c.updated).toLocaleDateString("ru-RU")}</span></div><span class="tag ${v.sev}">${esc(v.title)}</span><button class="xbtn" title="Удалить" data-del="${c.id}">×</button></div>`; }).join("")}</div>`
+    ${list.length ? `<div class="clist">${list.map(c => { const v = clientVerdict(c); return `<div class="citem" data-open="${c.id}"><div class="nm"><b${c.card.name ? " data-nt" : ""}>${esc(c.card.name || "Без названия")}${c.demo ? ' <span class="tag nd">пример</span>' : ""}</b><span class="small muted">${esc([c.card.bin, c.card.product, isNum(c.card.amount) ? fmt(c.card.amount) + " тыс. тг" : ""].filter(Boolean).join(" · "))} · изменён ${new Date(c.updated).toLocaleDateString("ru-RU")}</span></div><span class="tag ${v.sev}">${esc(v.title)}</span><button class="xbtn" title="Удалить" data-del="${c.id}">×</button></div>`; }).join("")}</div>`
       : `<div class="empty">Пока нет клиентов. Нажмите «Новый клиент» или посмотрите «Пример для заполнения».</div>`}
     <p class="small muted" style="margin-top:24px">Данные хранятся только в этом браузере на этом компьютере и никуда не отправляются. Регистрация не нужна. Чтобы перенести клиента на другой компьютер — кнопка «Сохранить в файл» внутри клиента. Все суммы — в тыс. тенге.</p>
     <footer class="homefoot"><span>© 2026 Создан ОФКК Костанай</span><span class="dev">Интерфейс: ${DEVICE_TXT[DEV]}</span></footer>
@@ -89,9 +89,9 @@ function renderClient() {
   if (PAGE === "prob") PAGE = "an";
   const body = { card: pageCard, fin: pageFin, an: pageAn, concl: pageConcl }[PAGE](pr, v);
   document.body.innerHTML = `<div class="app"><nav class="rail">
-    <div class="brand"><span>Экспресс-анализ<small>для клиентского менеджера</small></span></div>
+    <div class="brand"><span>Экспресс-анализ<small>для клиентского менеджера</small></span>${langSwitch()}</div>
     <a class="tohub" href="/">← На главную</a>
-    <div class="client"><b>${esc(X.card.name || "Новый клиент")}</b><button data-act="home">← ко всем клиентам</button></div>
+    <div class="client"><b${X.card.name ? " data-nt" : ""}>${esc(X.card.name || "Новый клиент")}</b><button data-act="home">← ко всем клиентам</button></div>
     <ol class="steps">${PAGES.map(([id, t]) => `<li><button data-page="${id}"${PAGE === id ? ' aria-current="page"' : ""}>${t}<span class="dot ${dots[id]}"></span></button></li>`).join("")}</ol>
     <div class="foot"><div class="foot-save"><button class="btn ghost" style="padding-left:0" data-act="save">Сохранить в файл</button><br>Все суммы — тыс. тг. Данные только в этом браузере.</div><div class="copy">© 2026 Создан ОФКК Костанай</div></div>
   </nav><main class="main">${body}<footer class="mfoot"><button class="btn ghost" data-act="save">Сохранить в файл</button><span>Все суммы — тыс. тг. Данные только в этом браузере.</span><span class="copy">© 2026 Создан ОФКК Костанай</span></footer></main></div>

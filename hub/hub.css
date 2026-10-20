@@ -27,3 +27,8 @@ h1{font-family:var(--head);font-weight:500;font-size:clamp(28px,5vw,44px);line-h
 footer{padding:18px clamp(16px,4vw,32px) 24px;text-align:center;font-family:var(--sys);font-size:11.5px;color:var(--muted)}
 @media(max-width:720px){.cards{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.card{transition:none}.card:hover{transform:none}}
+.tools{display:flex;align-items:center;gap:12px;margin-left:auto}
+.lang{display:inline-flex;border:1.5px solid var(--azure);border-radius:999px;overflow:hidden;flex:none}
+.lang button{border:0;background:transparent;color:var(--azure);font:inherit;font-size:13px;font-weight:700;letter-spacing:.04em;padding:6px 14px;cursor:pointer}
+.lang button.on{background:var(--azure);color:#fff}
+.card .num small{font-size:inherit}

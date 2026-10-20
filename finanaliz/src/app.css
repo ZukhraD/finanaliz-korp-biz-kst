@@ -665,6 +665,8 @@ html[data-device="tablet"] .crow { grid-template-columns: 1fr auto; }
 .rsact { display: flex; gap: 6px; }
 
 /* ссылка на главную страницу объединённого сайта */
-.tohub{display:inline-block;font-weight:600;font-size:13px;line-height:1.2;color:#023DFF;text-decoration:none;padding:4px 0}
-.tohub:hover{text-decoration:underline}
-.rail .tohub{color:#fff;opacity:.9;padding:0 8px}
+.tohub{display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;line-height:1.2;color:#023DFF;text-decoration:none;padding:10px 20px;border:2px solid #023DFF;border-radius:999px 999px 999px 0;background:#fff;transition:background .15s,color .15s}
+.tohub:hover{background:#023DFF;color:#fff}
+.home>.tohub{margin-bottom:12px}
+.rail .tohub{color:#fff;background:transparent;border-color:rgba(255,255,255,.85)}
+.rail .tohub:hover{background:#fff;color:#023DFF}

@@ -392,6 +392,10 @@ html[data-device="desktop"] .pagehead p.one { white-space: nowrap; }
 .calcbox .negv { color: var(--crit); }
 
 /* ссылка на главную страницу объединённого сайта */
-.tohub{display:inline-block;font-weight:600;font-size:13px;line-height:1.2;color:#023DFF;text-decoration:none;padding:4px 0}
-.tohub:hover{text-decoration:underline}
-.rail .tohub{color:#fff;opacity:.9;padding:0 8px}
+.tohub{display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;line-height:1.2;color:var(--azure);text-decoration:none;padding:10px 20px;border:2px solid var(--azure);border-radius:999px 999px 999px 0;background:var(--white);transition:background .15s,color .15s}
+.tohub:hover{background:var(--azure);color:#fff}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.lang{display:inline-flex;border:1.5px solid var(--azure);border-radius:999px;overflow:hidden;flex:none}
+.lang button{border:0;background:transparent;color:var(--azure);font-size:13px;font-weight:700;letter-spacing:.04em;padding:6px 14px;cursor:pointer}
+.lang button.on{background:var(--azure);color:#fff}
+.brand .lang{margin-left:auto}
