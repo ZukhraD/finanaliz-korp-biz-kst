@@ -120,16 +120,18 @@ const perIdx = pid => X.per.findIndex(p => p.id === pid);
 const fv = (key, pid) => { const v = X.fin?.[key]?.[pid]; return isNum(v) ? v : null; };
 function setFv(key, pid, v) { X.fin[key] = X.fin[key] || {}; if (v === null) delete X.fin[key][pid]; else X.fin[key][pid] = v; }
 
+// строки ОПиУ, из которых считается прибыль: если их нет, но есть чистая прибыль по отчётности — берём её (сокращённый ввод)
+const LITE_PL = ["cogs", "opex", "oth", "int", "cit", "fam"];
 /* значения с расчётными строками */
 function val(key, pid) {
   const d = LINEDEF[key];
-  if (key === "ta") { const a = ["cash", "ar", "inv", "oca", "fa"].map(k => fv(k, pid)); return a.some(isNum) ? sum(a) : null; }
+  if (key === "ta") { const a = ["cash", "ar", "inv", "oca", "fa"].map(k => fv(k, pid)); return a.some(isNum) ? sum(a) : fv("ta_rep", pid); }   // нет строк — берём итог из отчётности (сокращённый ввод)
   if (key === "tle") { const a = ["ap", "debt_st", "debt_lt", "ol", "eq"].map(k => fv(k, pid)); return a.some(isNum) ? sum(a) : null; }
-  if (key === "ni") { const r = fv("rev", pid); if (!isNum(r)) return null; return r - N(fv("cogs", pid)) - N(fv("opex", pid)) + N(fv("oth", pid)) - N(fv("int", pid)) - N(fv("cit", pid)) - N(fv("fam", pid)); }
+  if (key === "ni") { const r = fv("rev", pid); if (!isNum(r)) return null; if (!LITE_PL.some(k => isNum(fv(k, pid))) && isNum(fv("ni_rep", pid))) return fv("ni_rep", pid); return r - N(fv("cogs", pid)) - N(fv("opex", pid)) + N(fv("oth", pid)) - N(fv("int", pid)) - N(fv("cit", pid)) - N(fv("fam", pid)); }
   if (key === "debt") { const a = [fv("debt_st", pid), fv("debt_lt", pid)]; return a.some(isNum) ? sum(a) : null; }
   if (key === "ca") { const a = ["cash", "ar", "inv", "oca"].map(k => fv(k, pid)); return a.some(isNum) ? sum(a) : null; }
   if (key === "cl") { const a = ["ap", "debt_st", "ol"].map(k => fv(k, pid)); return a.some(isNum) ? sum(a) : null; }
-  if (key === "ebit") { const r = fv("rev", pid); if (!isNum(r)) return null; return r - N(fv("cogs", pid)) - N(fv("opex", pid)); }
+  if (key === "ebit") { const r = fv("rev", pid); if (!isNum(r)) return null; if (!LITE_PL.some(k => isNum(fv(k, pid))) && isNum(fv("ni_rep", pid))) return fv("ni_rep", pid) + N(fv("int", pid)) + N(fv("cit", pid)); return r - N(fv("cogs", pid)) - N(fv("opex", pid)); }
   if (key === "ebitda") { const e = val("ebit", pid); return isNum(e) ? e + N(fv("da", pid)) : null; }
   return d ? fv(key, pid) : null;
 }

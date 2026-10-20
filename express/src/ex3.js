@@ -212,7 +212,10 @@ let OD_OPEN = false;
 function pageFin() {
   if (!UPL.pid || perIdx(UPL.pid) < 0) UPL.pid = X.per[X.per.length - 1].id;
   const P = X.per, dy = declYears();
-  const rows = blk => FL[blk].map(l => {
+  // Овердрафт и Бизнес Успех: только строки, нужные для проверки условий продукта
+  const lite = isOD() || isBU(), LITE = { bal: [["ta_rep", "Итого активы (валюта баланса)"], ...(isOD() ? [["ar", "Дебиторская задолженность"]] : []), ["eq", "Собственный капитал"]], pl: [["rev", "Выручка"], ["ni_rep", "Чистая прибыль (убыток) за период"]] };
+  const rows = blk => lite && LITE[blk] ? LITE[blk].map(([k, lab]) => { const d = LINEDEF[k];
+    return `<tr><td class="l">${esc(lab)}${d.hint && k !== "ta_rep" && k !== "ni_rep" ? `<span class="note">${esc(d.hint)}</span>` : ""}</td>${P.map(p => `<td class="c">${num(fv(k, p.id), `f.${k}.${p.id}`)}</td>`).join("")}</tr>`; }).join("") : FL[blk].map(l => {
     if (l[0] === "sec") return `<tr class="sec"><td colspan="${P.length + 1}">${esc(l[1])}</td></tr>`;
     const d = LINEDEF[l[0]];
     const cells = P.map(p => d.typ === "calc" ? `<td>${T(val(d.key, p.id))}</td>` : `<td class="c">${num(fv(d.key, p.id), `f.${d.key}.${p.id}`)}</td>`).join("");
@@ -229,9 +232,9 @@ function pageFin() {
     <div class="drop" id="drop">${TOUCH ? `<b>Загрузить документ</b><button class="btn primary" data-act="pick">Выбрать файл или сфотографировать</button>` : `<b>Перетащите файлы сюда</b>или <button class="btn" data-act="pick">выберите на компьютере</button>`}<div class="small muted" style="margin-top:6px">Excel, PDF (в том числе скан) или фото. Период сайт определит сам по датам в документе; колонка «на начало года» / «за предыдущий год» попадёт в прошлый год.</div></div>
     ${UPL.log.length ? `<div class="flist">${UPL.log.map((r, li) => `<div class="fitem ${r.ok ? "ok" : r.ask ? "warn" : "err"}"><span class="ic">${r.ok ? "✓" : r.ask ? "?" : "!"}</span><div class="fn"><b>${esc(r.file)}</b><br>${esc(r.txt || r.err)}${r.ask && UPL.files[r.file] ? `<div class="row askper">${X.per.map(p => `<button class="btn" data-loadto="${li}|${p.id}">${esc(perLabel(p))}</button>`).join("")}</div>` : ""}</div></div>`).join("")}</div><p class="small muted" style="margin-top:8px">Проверьте цифры в таблице ниже — особенно итоги: «Итого активы» должны совпасть с документом.</p>` : ""}
   </section>
-  <section class="panel"><h2>Баланс</h2><div class="tw"><table class="t">${head}<tbody>${rows("bal")}</tbody></table></div></section>
+  <section class="panel"><h2>Баланс</h2>${lite ? `<p class="hint">Для продукта «${esc(X.card.product)}» нужны только четыре показателя: итог активов, собственный капитал, выручка и чистая прибыль. Остальные строки скрыты — если загрузить документ, они всё равно заполнятся.</p>` : ""}<div class="tw"><table class="t">${head}<tbody>${rows("bal")}</tbody></table></div></section>
   <section class="panel"><h2>Отчёт о прибылях и убытках (ОПиУ)</h2><p class="hint">Расходы — положительными числами. Для неполного года — цифры с начала года (как в отчётности).</p><div class="tw"><table class="t">${head}<tbody>${rows("pl")}</tbody></table></div></section>
-  <section class="panel"><h2>Движение денежных средств (ДДС)</h2><p class="hint">Необязательно. Если ДДС нет — пропустите.</p><div class="tw"><table class="t">${head}<tbody>${rows("cf")}</tbody></table></div></section>
+  ${lite ? "" : `<section class="panel"><h2>Движение денежных средств (ДДС)</h2><p class="hint">Необязательно. Если ДДС нет — пропустите.</p><div class="tw"><table class="t">${head}<tbody>${rows("cf")}</tbody></table></div></section>`}
   <section class="panel"><h2>Налоговые декларации</h2><p class="hint">Загружаются в окно выше. Или внесите доход вручную. Суммы — в тыс. тг.</p>
     <div class="tw"><table class="t"><thead><tr><th class="l">Форма</th><th class="l">Год</th><th class="l">Период</th><th>Доход</th><th>Оборот по НДС</th><th class="l">Файл</th><th></th></tr></thead><tbody>
     ${(X.decl || []).slice().sort((a, b) => (a.year - b.year) || String(a.form).localeCompare(b.form) || String(a.part).localeCompare(b.part)).map(d => { const i = X.decl.indexOf(d); return `<tr><td class="c"><select class="inp" data-k="d.${i}.form">${opts([["100", "100.00 КПН"], ["910", "910.00 упрощённая"], ["300", "300.00 НДС"], ["200", "200.00 ИПН/СН"], ["220", "220.00 ИПН"]].concat(["100", "910", "300", "200", "220"].includes(d.form) ? [] : [[d.form, d.formName || d.form]]), d.form)}</select></td>

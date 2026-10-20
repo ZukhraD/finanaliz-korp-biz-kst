@@ -135,7 +135,7 @@ function problems(m = analyze()) {
   const big = (a, b) => isNum(a) && isNum(b) && Math.abs(a - b) > NORM.diff_abs && Math.abs(a - b) > NORM.diff_pct * Math.max(Math.abs(a), Math.abs(b));
   for (const p of X.per) {
     const ta = val("ta", p.id), tle = val("tle", p.id), L = perLabel(p);
-    if (isNum(ta) && isNum(tle) && Math.abs(ta - tle) > Math.max(5, 0.005 * ta)) add("chk", "Расхождения", `Баланс не сходится (${L})`, `Активы ${T(ta)}, а пассивы ${T(tle)} — разница ${T(ta - tle)}. Скорее всего, ошибка при вводе или загрузке.`, "Сверить строки с документом.");
+    if (["cash", "ar", "inv", "oca", "fa"].some(k => isNum(fv(k, p.id))) && isNum(ta) && isNum(tle) && Math.abs(ta - tle) > Math.max(5, 0.005 * ta)) add("chk", "Расхождения", `Баланс не сходится (${L})`, `Активы ${T(ta)}, а пассивы ${T(tle)} — разница ${T(ta - tle)}. Скорее всего, ошибка при вводе или загрузке.`, "Сверить строки с документом.");
     const tr = fv("ta_rep", p.id);
     if (isNum(ta) && isNum(tr) && Math.abs(ta - tr) > Math.max(5, 0.005 * tr)) add("chk", "Расхождения", `Итог активов не совпадает с отчётностью (${L})`, `По строкам ${T(ta)}, в документе ${T(tr)}.`, "Проверить, все ли строки баланса заполнены.");
     const ni = val("ni", p.id), nr = fv("ni_rep", p.id);
