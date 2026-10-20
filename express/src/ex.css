@@ -68,9 +68,9 @@ p { margin: 0 0 8px; }
 .empty { background: var(--plat-soft); border-radius: var(--shape-s); padding: 24px; text-align: center; color: var(--muted); }
 
 /* клиент */
-.app { display: grid; grid-template-columns: 248px 1fr; min-height: 100vh; }
+.app { display: grid; grid-template-columns: 296px 1fr; min-height: 100vh; }
 .rail { background: var(--white); color: var(--graphite); border-right: 1.5px solid var(--platinum); padding: 22px 14px; display: flex; flex-direction: column; gap: 16px; position: sticky; top: 0; height: 100vh; overflow: auto; }
-.brand { font-family: var(--head); font-weight: 500; font-size: 19px; color: var(--graphite); line-height: 1.2; padding: 0 8px; display: flex; gap: 10px; align-items: center; }
+.brand { font-family: var(--head); font-weight: 500; font-size: 19px; color: var(--graphite); line-height: 1.2; padding: 0 8px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .brand::before { content: ""; width: 28px; height: 28px; flex: 0 0 28px; border-radius: 10px 10px 10px 0; background: var(--azure); box-shadow: 9px -9px 0 -3px var(--lime); }
 .brand small { display: block; font-family: var(--sys); font-size: 11px; font-weight: 400; color: var(--muted); margin-top: 2px; }
 .rail .client { padding: 12px 10px; background: var(--plat-soft); border-radius: var(--shape-s); }

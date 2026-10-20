@@ -111,7 +111,7 @@ function rerender() {
 function pageCard() {
   const c = X.card, m = analyze(), lp = m.newPay, od = isOD(c);
   const cnum = (f, ph = "") => num(c[f], "c." + f, ph ? `placeholder="${esc(ph)}"` : "");
-  const csel = (f, list) => `<select class="inp" data-k="c.${f}">${opts(c[f] && !list.includes(c[f]) ? [...list, c[f]] : list, c[f])}</select>`;
+  const csel = (f, list) => `<select class="inp" data-k="c.${f}">${opts(c[f] && list.every(o => !Array.isArray(o)) && !list.includes(c[f]) ? [...list, c[f]] : list, c[f])}</select>`;
   const pe = isNum(c.payExist) ? c.payExist : ((c.loans || []).length ? m.payExist : null);
   const box = (txt, note) => `<div class="calcbox">${txt}</div>${note ? `<span class="fnote">${note}</span>` : ""}`;
   return `<div class="pagehead"><div class="lead"><h1>Карточка клиента</h1><p>Что просит клиент. Серые поля заполняете вы; суммы — в тыс. тенге.</p></div></div>
