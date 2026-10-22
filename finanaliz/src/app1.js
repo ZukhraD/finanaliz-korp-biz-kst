@@ -228,6 +228,11 @@ const NP = "н/п";
 const RAT_DEF = {}; for (const k of Object.keys(RAT)) RAT_DEF[k] = { green: RAT[k].green, red: RAT[k].red, crit: RAT[k].crit };
 const RATN_KEY = "finkz.ratios.v1";
 let RATN = (() => { try { return JSON.parse(localStorage.getItem(RATN_KEY) || "{}"); } catch (e) { return {}; } })();
+const ratnId = () => { const s = JSON.stringify(RATN || {}); if (s === "{}") return "нормативы: стандартные нормативы банка"; let h = 0; for (const ch of s) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return "нормативы: изменены вручную, код " + h.toString(16).toUpperCase().slice(0, 6); };
+const siteVer = () => { const v = window.SITE_VER || {}; return `версия ${v.v || "—"} от ${v.d ? v.d.split("-").reverse().join(".") : "—"}`; };
+const verLine = () => `Сформировано сайтом «Финансовый анализ», ${siteVer()}, пилотная эксплуатация; ${ratnId()}.`;
+const MAIL = "zukhra.dostanova@berekebank.kz";
+const reportLink = (tool = "Финансовый анализ") => `<a href="mailto:${MAIL}?subject=${encodeURIComponent(tool + " (пилот): замечание")}&body=${encodeURIComponent("Раздел и что делали:\n\nЧто ожидали:\n\nЧто получилось:\n\nВерсия: " + siteVer() + "\nБраузер: " + navigator.userAgent + "\n\nНе прикладывайте данные клиентов: только описание и скриншот без персональных данных.")}">Сообщить о проблеме</a>`;
 function applyRatn() { for (const k of Object.keys(RAT_DEF)) Object.assign(RAT[k], RAT_DEF[k], RATN[k] || {}); }
 applyRatn();
 function ratio(obj, key, pid) {

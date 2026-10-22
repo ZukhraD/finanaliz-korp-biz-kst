@@ -11,6 +11,7 @@ const CHK_TXT = { ok: ["ok", "ОК"], bad: ["crit", "Расхождение"], n
 
 function render() {
   if (LOCK.on && !LOCK.key) return renderLock();
+  if (window.__finReady) pickupHandoff();
   if (!C) return renderClients();
   PROB = problems();
   const steps = [["card", "Карточка клиента"], ["trust", "Благонадёжность"], ["bal", "Баланс"], ["odr", "ОПиУ"], ["cf", "ДДС"], ["tax", "Налоги"], ["bank", "Банк"], ["credit", "Кредитная история"], ["coll", "Залог и гаранты"], ...(nComp() > 1 ? [["cons", "Свод группы"]] : []), ["fc", "Прогноз"], ["an", "Анализ"], ["prob", "Проблемы"], ["concl", "Заключение"]];
@@ -101,7 +102,7 @@ function renderClients() {
       <div class="chead"><h2>Клиенты</h2>${list.length > 3 ? `<input class="inp search" id="q" placeholder="Поиск по названию, БИН или ОКЭД" aria-label="Поиск клиента">` : ""}</div>
       ${list.length ? `<ul class="crows">${rows}</ul>` : `<div class="empty"><h2>Пока нет ни одного клиента</h2><p class="muted">Создайте клиента или откройте пример, чтобы посмотреть, как всё устроено.</p><div class="hbtn" style="justify-content:center"><button class="btn primary" data-act="new">Новый клиент</button><button class="btn ghost" data-act="demo">Открыть пример заполнения</button></div></div>`}
     </section>
-    <footer class="hfoot"><span>© 2026 Создан ОФКК Костанай</span><span>Резервная копия клиента — кнопка «Файл»; открыть на другом компьютере — «Открыть файл клиента».</span></footer>
+    <footer class="hfoot"><span>© 2026 Создан ОФКК Костанай · ${siteVer()} · пилот · ${reportLink()}</span><span>Резервная копия клиента — кнопка «Файл»; открыть на другом компьютере — «Открыть файл клиента».</span></footer>
   </div><div id="toast" class="toast" role="status"></div>${DIALOG}`;
   const q = $("#q");
   if (q) q.oninput = () => { const v = q.value.trim().toLowerCase(); document.querySelectorAll(".crow").forEach(li => (li.style.display = !v || li.dataset.q.includes(v) ? "" : "none")); };
@@ -358,7 +359,7 @@ function pageConcl() {
   C.concl = C.concl || {};
   if (!C.concl.manual && typeof ensureAutoConcl === "function" && ensureAutoConcl(!!C.concl.auto)) saveAll();
   return `<div class="pagehead"><div class="lead"><h1>Заключение</h1></div>
-    <div class="toolbar">${objSelect()}<button class="btn primary" data-act="word">Скачать в Word</button><button class="btn" data-act="print">Печать / PDF</button><button class="btn" data-act="aipdf" title="Только цифры, без названий, БИН, адресов и имён">Скачать в PDF для ИИ</button></div></div>
+    <div class="toolbar">${objSelect()}<button class="btn primary" data-act="word">Скачать в Word</button><button class="btn" data-act="print">Печать / PDF</button><button class="btn" data-act="passport" title="Ключевые цифры одной таблицей (CSV) для ввода в модули Кредитной фабрики">Паспорт данных</button><button class="btn" data-act="aipdf" title="Только цифры, без названий, БИН, адресов и имён">Скачать в PDF для ИИ</button></div></div>
   <section class="panel noprint"><div class="phead"><h2>Оценка и решение</h2><button class="btn ghost sm" data-act="autoconcl">Сформировать заново</button></div><p class="hint">Автоиндикатор: ${stChip(rs.ind[0], rs.ind[1])}</p><div class="grid2">
     <label class="f"><span>Рекомендация</span><select class="inp" data-concl="decision"><option value=""></option>${opts(S.lists.decision, C.concl.decision)}</select></label>
     <label class="f"><span>Статус</span><select class="inp" data-concl="status">${opts(["Черновик", "На проверке", "Утверждено"], C.concl.status)}</select></label></div>
@@ -532,6 +533,7 @@ document.addEventListener("click", async e => {
     case "addloan": { const f = fcParams(); f.loans = f.loans || []; if (!f.loans.length) { const d = ratio(C.obj, "debt", lastPid()); if (isNum(d) && d > 0) f.loans.push({ name: "Долг по балансу", bal: d, rate: f.aggRate, rem: f.aggTerm, scheme: "Дифференцированный", grace: 0 }); else f.loans.push({ name: "", bal: 0, rate: 0.16, rem: 36, scheme: "Дифференцированный", grace: 0 }); } else f.loans.push({ name: "", bal: 0, rate: 0.16, rem: 36, scheme: "Дифференцированный", grace: 0 }); touch(); render(); break; }
     case "addproj": { const f = fcParams(); f.projects = f.projects || []; f.projects.push({ name: "", amt: 0, start: 3, dur: 3, own: 0.3 }); touch(); render(); break; }
     case "word": exportWord(); break;
+    case "passport": exportPassport(); break;
     case "print": window.print(); break;
   }
 });

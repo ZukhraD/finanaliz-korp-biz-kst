@@ -6,6 +6,9 @@ const S = window.SPEC;
 var C = { settings: { variant: 0 }, custom: {} };   // нужно разборщику форм основного сайта (app2.js)
 
 /* ---------------------------------------------------------------- числа */
+const siteVer = () => { const v = window.SITE_VER || {}; return `версия ${v.v || "—"} от ${v.d ? v.d.split("-").reverse().join(".") : "—"}`; };
+const MAIL = "zukhra.dostanova@berekebank.kz";
+const reportLink = (tool = "Экспресс-анализ") => `<a href="mailto:${MAIL}?subject=${encodeURIComponent(tool + " (пилот): замечание")}&body=${encodeURIComponent("Раздел и что делали:\n\nЧто ожидали:\n\nЧто получилось:\n\nВерсия: " + siteVer() + "\nБраузер: " + navigator.userAgent + "\n\nНе прикладывайте данные клиентов: только описание и скриншот без персональных данных.")}">Сообщить о проблеме</a>`;
 const isNum = v => typeof v === "number" && isFinite(v);
 const N = v => (isNum(v) ? v : 0);
 function parseNum(s) {

@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 """Собирает index.html — «Экспресс-анализ для КМ»: один офлайн-файл без внешних ссылок.
 Читалки Excel/PDF и разбор деклараций (src/read_*.js) — из основного сайта finanaliz."""
-import json, re, base64, glob
+import datetime, json, re, base64, glob
 kz = {}
 for f in sorted(glob.glob("i18n/kz*.json")): kz.update(json.load(open(f, encoding="utf-8")))
 for k, v in list(kz.items()):   # вариант с маленькой буквы: «Загрузите…» → «загрузите…»
     lk = k[:1].lower() + k[1:]
     if len(k) >= 5 and lk != k and lk not in kz and v: kz[lk] = v[:1].lower() + v[1:]
+verjs = json.dumps({"v": open("../VERSION").read().strip(), "d": datetime.date.today().isoformat()})
 kzjs = json.dumps(kz, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
 spec = json.dumps(json.load(open("src/spec.json", encoding="utf-8")), ensure_ascii=False, separators=(",", ":"))
 FACES = [("Roboto", 400, "roboto-400"), ("Roboto", 500, "roboto-500"), ("Roboto", 700, "roboto-700"), ("Jost", 500, "jost-500")]
@@ -19,7 +20,7 @@ html = f"""<!doctype html>
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; worker-src 'self'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'self' data: blob:">
 <title>Экспресс-анализ для КМ</title>
 <style>{css}</style></head>
-<body><script>window.SPEC = {spec}; window.I18N_KZ = {kzjs};</script>
+<body><script>window.SITE_VER = {verjs}; window.SPEC = {spec}; window.I18N_KZ = {kzjs};</script>
 <script>"use strict";
 {js}</script></body></html>"""
 assert not re.search(r"https?://(?!www\.w3\.org|schemas\.openxmlformats)", html), "внешние ссылки"
