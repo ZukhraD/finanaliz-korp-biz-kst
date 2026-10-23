@@ -346,7 +346,7 @@ function conclusionHTML(forWord, imgs) {
   // 8–9. выводы и рекомендация
   h += `${H2("Выводы кредитного менеджера")}<p class="concl-text">${esc(C.concl.text || "—")}</p>
   ${H2("Рекомендация")}<p><b>${esc(C.concl.decision || "не выбрана")}</b></p>${C.concl.conditions ? `<p class="concl-text">${esc(C.concl.conditions)}</p>` : ""}
-  <p class="small muted" style="margin-top:18px">Кредитный менеджер: ${esc(c.analyst || "—")}. Дата: ${esc(c.date || "")}. Статус: ${esc(C.concl.status)}. Суммы — в тыс. тг. Автоиндикатор не заменяет решение кредитного менеджера.<br>${verLine()}</p>`;
+  <p class="small muted" style="margin-top:18px">Кредитный менеджер: ${esc(c.analyst || "—")}. Дата: ${esc(c.date || "")}. Статус: ${esc(C.concl.status)}. Суммы — в тыс. тг. Автоиндикатор не заменяет решение кредитного менеджера.</p>`;
   return h;
 }
 async function svgPng(svg) {

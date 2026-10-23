@@ -77,7 +77,7 @@ function renderHome() {
     ${list.length ? `<div class="clist">${list.map(c => { const v = clientVerdict(c); return `<div class="citem" data-open="${c.id}"><div class="nm"><b${c.card.name ? " data-nt" : ""}>${esc(c.card.name || "Без названия")}${c.demo ? ' <span class="tag nd">пример</span>' : ""}</b><span class="small muted">${esc([c.card.bin, c.card.product, isNum(c.card.amount) ? fmt(c.card.amount) + " тыс. тг" : ""].filter(Boolean).join(" · "))} · изменён ${new Date(c.updated).toLocaleDateString("ru-RU")}</span></div><span class="tag ${v.sev}">${esc(v.title)}</span><button class="xbtn" title="Удалить" data-del="${c.id}">×</button></div>`; }).join("")}</div>`
       : `<div class="empty">Пока нет клиентов. Нажмите «Новый клиент» или посмотрите «Пример для заполнения».</div>`}
     <p class="small muted" style="margin-top:24px">Данные хранятся только в этом браузере на этом компьютере и никуда не отправляются. Регистрация не нужна. Чтобы перенести клиента на другой компьютер — кнопка «Сохранить в файл» внутри клиента. Все суммы — в тыс. тенге.</p>
-    <footer class="homefoot"><span>© 2026 Создан ОФКК Костанай · ${siteVer()} · пилот · ${reportLink("Экспресс-анализ")}</span><span class="dev">Интерфейс: ${DEVICE_TXT[DEV]}</span></footer>
+    <footer class="homefoot"><span>© 2026 Создан ОФКК Костанай</span><span class="dev">Интерфейс: ${DEVICE_TXT[DEV]}</span></footer>
   </div><div id="toast"></div><input type="file" id="ofile" accept=".json" class="hidden">`;
 }
 function clientVerdict(c) { const keep = X; X = c; let v; try { v = verdict(problems()); } catch (e) { v = { sev: "nd", title: "—" }; } X = keep; return v; }
@@ -307,7 +307,7 @@ function odAnPanel() {
 function pageConcl(pr, v) {
   const doc = buildConclusion(pr, v);
   return `<div class="pagehead"><div class="lead"><h1>Заключение</h1><p class="one">Готовое заключение по всем данным клиента. Оно обновляется само, когда вы меняете цифры.</p></div>
-    <div class="row noprint actions">${navigator.share ? `<button class="btn" data-act="share">Поделиться</button>` : ""}<button class="btn" data-act="copy">Копировать текст</button><button class="btn" data-act="handoff">Передать в Финансовый анализ</button><button class="btn primary" data-act="print">Печать / PDF</button></div></div>
+    <div class="row noprint actions">${navigator.share ? `<button class="btn" data-act="share">Поделиться</button>` : ""}<button class="btn" data-act="copy">Копировать текст</button><button class="btn primary" data-act="print">Печать / PDF</button></div></div>
   <article class="doc">${docHtml(doc)}</article>`;
 }
 const docText = doc => doc.map((b, i) => b.title ? b.title.toUpperCase() : b.h ? "\n" + b.h.toUpperCase() : b.li ? "– " + b.li : b.v ? `\nВЫВОД: ${b.v.title.toUpperCase()}\n${b.v.text}` : b.meta ? (i === doc.length - 1 ? "\n" + b.meta : b.meta) : b.p).join("\n").trim();
@@ -380,6 +380,5 @@ function buildConclusion(pr, v) {
   const todos = [...new Set(pr.filter(p => p.todo && p.sev !== "ok").map(p => p.todo))];
   if (todos.length) { P("Что запросить или уточнить у клиента:"); todos.forEach(x => LI(x)); }
   D.push({ meta: "Экспресс-анализ предварительный и не заменяет полного анализа и решения кредитного комитета. Суммы — в тыс. тенге." });
-  D.push({ meta: `Сформировано сайтом «Экспресс-анализ», ${siteVer()}, пилотная эксплуатация.` });
   return D;
 }

@@ -15,8 +15,6 @@ KZ = {
   "n2": "2 · кредиттік менеджер үшін", "t2": "Қаржылық талдау",
   "p2": "Заңды тұлғалар мен компаниялар топтарын толық талдау: есептілік, салықтар, банк, несиелік тарих, болжам, қорытынды.",
   "a2": "Баланс, ПЗЕ, АҚҚ, коэффициенттер және DSCR", "b2": "Банк үзінділері, БКБ, кепіл және кепілгерлер", "c2": "Кредиттік комитетке арналған қорытынды",
-  "l1": "Жадынама", "l2": "Деректер және қауіпсіздік", "l3": "Уақытты өлшеу", "l4": "Мәселе туралы хабарлау",
-  "disc": "Ақпараттық құрал: кредит комитетінің шешімін алмастырмайды.", "verl": "Нұсқа", "pil": "пилот", "sup": "Қолдау",
   "go": "Ашу", "foot": "© 2026 Жасаған: ОФКК Қостанай", "lang": "Тіл",
 }
 kzjs = json.dumps(KZ, ensure_ascii=False)
@@ -44,7 +42,7 @@ html = f"""<!doctype html>
 </div>
 </main>
 </div>
-__PILOT_HTML__
+<footer data-t="foot">© 2026 Создан ОФКК Костанай</footer>
 <script>
 (function () {{
   var KZ = {kzjs}, K = "finkz.lang", L = "ru";
@@ -67,10 +65,7 @@ __PILOT_HTML__
   paint();
 }})();
 </script>
-<script>__PILOT_JS__</script>
 </body></html>"""
-ver = open("VERSION").read().strip()
-html = html.replace("__PILOT_HTML__", open("hub/pilot.html", encoding="utf-8").read()).replace("__PILOT_JS__", open("hub/pilot.js", encoding="utf-8").read()).replace("__VER__", ver + " от " + __import__("datetime").date.today().strftime("%d.%m.%Y"))
 assert not re.search(r"https?://", html), "внешние ссылки"
 open("index.html", "w", encoding="utf-8").write(html)
 print(len(html))

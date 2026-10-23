@@ -5,7 +5,7 @@
 // Защита от подбора: не больше 5 неудачных попыток на логин и 30 на IP за 15 минут.
 // Хранилище — Upstash Redis (Vercel → Storage), доступ по REST.
 // Переменные окружения: KV_REST_API_URL + KV_REST_API_TOKEN (или UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN),
-// ADMIN_LOGIN, ALLOWED_LOGINS — необязательно (роли пилота), INVITE_CODE — необязательно (иначе код приглашения задаёт первый сотрудник), SESSION_SECRET — необязательно.
+// INVITE_CODE — необязательно (иначе код приглашения задаёт первый сотрудник), SESSION_SECRET — необязательно.
 const crypto = require("crypto");
 // адрес и токен Upstash: KV_…, UPSTASH_REDIS_… или любой свой префикс (…_REST_API_URL / …_REST_API_TOKEN)
 const envEnd = suf => { for (const [k, v] of Object.entries(process.env)) if (k.endsWith(suf) && !/READ_ONLY/.test(k) && v) return v; return ""; };
@@ -50,12 +50,7 @@ async function fail(login, ip) {
 const TOO_MANY = "Слишком много неудачных попыток. Попробуйте через 15 минут.";
 // администратор — первый зарегистрированный сотрудник; он может восстановить доступ коллеге, забывшему пароль
 // (ключ данных каждого сотрудника дополнительно «завёрнут» открытым ключом администратора; закрытый ключ хранится у администратора зашифрованным)
-// Роли: ADMIN_LOGIN — назначенный администратор (не обязательно первый, кто зарегистрировался; пример: ADMIN_LOGIN=zukhra.dostanova@berekebank.kz),
-// ALLOWED_LOGINS — список логинов через запятую, которым разрешена регистрация (пилотная группа). Если не заданы — прежнее поведение.
-const ADMIN_ENV = (process.env.ADMIN_LOGIN || "").trim().toLowerCase();
-const ALLOWED_ENV = (process.env.ALLOWED_LOGINS || "").split(",").map(x => x.trim().toLowerCase()).filter(Boolean);
 async function adminLogin() {
-  if (ADMIN_ENV) return ADMIN_ENV;
   const a = await one("GET", P + "admin"); if (a) return a;
   const users = (await one("SMEMBERS", P + "users")) || []; if (!users.length) return null;
   const recs = await redis(users.map(l => ["GET", P + "user:" + l])); let best = null;
@@ -101,7 +96,6 @@ module.exports = async (req, res) => {
       }
       if (!firstInvite && !(await inviteOk(b.invite))) { await fail("", ip); return send(403, { ok: false, error: "Неверный код приглашения" }); }
       const l = normLogin(b.login); if (!validLogin(l)) return send(400, { ok: false, error: "Логин: 3–40 знаков (буквы, цифры, . _ - @)" });
-      if (ALLOWED_ENV.length && !ALLOWED_ENV.includes(l) && l !== ADMIN_ENV) return send(403, { ok: false, error: "Этот логин не входит в список пилотной группы. Обратитесь к администратору." });
       if (!b64ok(b.auth, 100) || !b64ok(b.salt, 40) || !wrapOk(b.wrap) || !b64ok(b.rauth, 100) || !b64ok(b.rsalt, 40) || !wrapOk(b.rwrap)) return send(400, { ok: false, error: "Неверные данные" });
       const hs = crypto.randomBytes(16).toString("base64"), rhs = crypto.randomBytes(16).toString("base64");
       const rec = { login: l, name: String(b.name || "").slice(0, 80), salt: b.salt, hs, h: await scryptHash(b.auth, hs), wrap: b.wrap,

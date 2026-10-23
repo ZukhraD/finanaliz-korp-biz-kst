@@ -344,7 +344,7 @@ function buConclusionHTML(forWord) {
   <p class="small muted">Запрещена выдача средств на оплату или перевод аффилированным и связанным лицам. Кредит выдаётся после регистрации залога; выезд на место ведения бизнеса и осмотр залога проводит КП.</p>
   ${H2("Выводы кредитного менеджера")}<p>${esc(C.concl.text || "—").replace(/\n/g, "<br>")}</p>${C.concl.conditions ? `<p><b>Условия:</b> ${esc(C.concl.conditions).replace(/\n/g, "<br>")}</p>` : ""}
   ${H2("Рекомендация")}<p><b>${esc(C.concl.decision || "не указана")}</b>${Q.final !== null ? `, сумма ${fmt(Q.final)} тыс. тг` : ""}. Статус: ${esc(C.concl.status || "Черновик")}.</p>
-  <p class="small muted">Кредитный менеджер: ${esc(c.analyst || "")} · ${esc((c.date || "").split("-").reverse().join("."))}<br>${verLine()}</p>`;
+  <p class="small muted">Кредитный менеджер: ${esc(c.analyst || "")} · ${esc((c.date || "").split("-").reverse().join("."))}</p>`;
 }
 const concHTML = forWord => (isOD() ? odConclusionHTML(forWord) : isBU() ? buConclusionHTML(forWord) : conclusionHTML(forWord));
 

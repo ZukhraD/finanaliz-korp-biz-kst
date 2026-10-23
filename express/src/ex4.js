@@ -96,13 +96,6 @@ document.addEventListener("click", async e => {
     case "pickst": $("#stfile").click(); break;
     case "adddecl": X.decl.push({ id: uid(), file: "", form: "100", formName: "КПН (ф. 100.00)", year: new Date().getFullYear() - 1, part: "Y", vals: {} }); touch(); rerender(); break;
     case "copy": { const txt = docText(buildConclusion(problems(), verdict(problems()))); try { await navigator.clipboard.writeText(txt); toast("Текст заключения скопирован"); } catch (err) { const r = document.createRange(); r.selectNodeContents($(".doc")); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); toast("Текст выделен — нажмите Ctrl+C"); } break; }
-    case "handoff": {
-      try {
-        localStorage.setItem("finkz.handoff.v1", JSON.stringify({ v: 1, t: Date.now(), card: X.card, per: X.per, fin: X.fin }));
-        saveAll(true); location.href = "/finanaliz/";
-      } catch (e) { toast("Не удалось передать: " + e.message); }
-      break;
-    }
     case "print": window.print(); break;
     case "share": { const txt = docText(buildConclusion(problems(), verdict(problems()))); try { await navigator.share({ title: "Экспресс-анализ: " + (X.card.name || "клиент"), text: txt }); } catch (err) { /* отменено */ } break; }
   }

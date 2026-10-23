@@ -224,7 +224,7 @@ function odConclusionHTML(forWord) {
   ${H2("Итог проверки")}<p>${bad.length ? `<b>Не соответствует условиям продукта:</b> ${esc(bad.map(x => x.title).join("; "))}.` : "Несоответствий условиям продукта не выявлено."}${warn.length ? ` Требует проверки / нет данных: ${esc(warn.map(x => x.title).join("; "))}.` : ""}</p>
   ${H2("Выводы кредитного менеджера")}<p>${esc(C.concl.text || "—").replace(/\n/g, "<br>")}</p>${C.concl.conditions ? `<p><b>Условия:</b> ${esc(C.concl.conditions).replace(/\n/g, "<br>")}</p>` : ""}
   ${H2("Рекомендация")}<p><b>${esc(C.concl.decision || "не указана")}</b>${isNum(c.amount) ? `, сумма ${fmt(Math.min(N(c.amount), B.limit))} тыс. тг` : ""}. Статус: ${esc(C.concl.status || "Черновик")}.</p>
-  <p class="small muted">Кредитный менеджер: ${esc(c.analyst || "")} · ${esc((c.date || "").split("-").reverse().join("."))}<br>${verLine()}</p>`;
+  <p class="small muted">Кредитный менеджер: ${esc(c.analyst || "")} · ${esc((c.date || "").split("-").reverse().join("."))}</p>`;
   return h;
 }
 
