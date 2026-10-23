@@ -55,7 +55,6 @@ function passportRows() {
   if (!b.err) { add("Прогноз", "DSCR с новым кредитом, база", Math.round(N(b.dscr_h_post) * 100) / 100, "раз"); add("Прогноз", "DSCR с новым кредитом, стресс", Math.round(N(s.dscr_h_post) * 100) / 100, "раз"); }
   if (cv) { add("Обеспечение", "Залоговая стоимость", Math.round(cv.coll), "тыс. тг"); add("Обеспечение", "Покрытие запроса", isNum(cv.cover) ? Math.round(cv.cover * 1000) / 10 : null, "%"); add("Обеспечение", "LTV", isNum(cv.ltv) ? Math.round(cv.ltv * 1000) / 10 : null, "%"); }
   add("Итог", "Автоиндикатор рисков", rs.ind[1]); add("Итог", "Рекомендация кредитного менеджера", C.concl.decision || ""); add("Итог", "Статус заключения", C.concl.status || "");
-  for (const [n, st, nt] of govRows()) add("Госпрограммы", n, st + (nt ? "; " + nt : ""));
   add("Служебно", "Сформировано", `${siteVer()}, ${new Date().toLocaleDateString("ru-RU")}`); add("Служебно", "Нормативы", ratnId().replace("нормативы: ", ""));
   return R;
 }
@@ -126,25 +125,3 @@ const REVIEW = { on: false, notes: [] };
     render();
   };
 }
-
-/* ---------------------------------------------------------------- Госпрограммы: флаги и примечания (условия программ не зашиты — актуальные условия сверяет кредитный менеджер) */
-function govList() { return ["Субсидирование ставки", "Гарантирование по кредиту", "Другая госпрограмма"]; }
-function govSt() { return ["Не применимо", "Рассматривается", "Подходит по условиям", "Не подходит"]; }
-function govGet() { if (!C.gov) C.gov = {}; return C.gov; }
-function govRows() { const g = C?.gov || {}; return govList().map((n, i) => { const r = g[i] || {}; return [r.name && i === 2 ? r.name : n, r.st || govSt()[0], r.note || ""]; }).filter(r => r[1] !== govSt()[0] || r[2]); }
-function govPanel() {
-  const g = govGet();
-  const rows = govList().map((n, i) => { const r = g[i] || {}; return `<tr><td class="lab">${i === 2 ? `<input class="inp" data-gov="${i}" data-f="name" value="${esc(r.name || "")}" placeholder="${n}: название">` : esc(n)}</td>
-    <td><select class="inp" data-gov="${i}" data-f="st">${govSt().map(s => `<option${(r.st || govSt()[0]) === s ? " selected" : ""}>${s}</option>`).join("")}</select></td>
-    <td><input class="inp" data-gov="${i}" data-f="note" value="${esc(r.note || "")}" placeholder="Условие, лимит, чего не хватает"></td></tr>`; }).join("");
-  return `<section class="panel"><h2>Госпрограммы</h2><p class="hint">Флаг помогает не забыть про участие в программе. Условия программ в сайт не зашиты: сверяйте с действующим положением на дату заявки. Отметки попадают в заключение и в паспорт данных.</p>
-  <div class="tablewrap" style="max-height:none"><table class="data form"><thead><tr><th class="lab" style="text-align:left">Программа</th><th style="text-align:left">Статус</th><th style="text-align:left">Примечание</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
-}
-function govHtml() {
-  const r = govRows(); if (!r.length) return "";
-  return `<h2>Госпрограммы</h2><ul>${r.map(([n, st, nt]) => `<li><b>${esc(n)}:</b> ${esc(st)}${nt ? " — " + esc(nt) : ""}</li>`).join("")}</ul>`;
-}
-document.addEventListener("change", e => {
-  const t = e.target; if (!t.matches || !t.matches("[data-gov]") || !C || REVIEW.on) return;
-  const g = govGet(), i = t.dataset.gov; (g[i] = g[i] || {})[t.dataset.f] = t.value; touch();
-});

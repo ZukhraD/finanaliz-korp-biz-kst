@@ -144,7 +144,6 @@ function pageCard() {
   ${reqPanel()}
   ${isOD() ? odCardPanel() : ""}
   ${prodPanel()}
-  ${govPanel()}
   ${okedPanel()}
   <section class="panel"><h2>Компании (${nComp()} из ${MAX_COMP})</h2><p class="hint">Для группы анализ строится по сумме компаний за вычетом внутригрупповых операций. БИН нужен, чтобы находить внутригрупповые операции. Кнопка «По БИН» сама загружает данные компании с ba.prg.kz (Параграф) — наружу уходит только БИН.</p>
     <div class="tablewrap" style="max-height:none"><table class="data form"><thead><tr><th class="lab">№</th><th style="text-align:left">Название</th><th style="text-align:left">БИН / ИИН</th><th style="text-align:left">Роль</th><th style="text-align:left">Форма</th><th style="text-align:left">Плательщик НДС</th><th style="text-align:left">Налоговый режим</th><th></th></tr></thead><tbody>${comps}</tbody></table></div>
